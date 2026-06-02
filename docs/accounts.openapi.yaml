@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Accounts REST API
+  version: 1.0.0
+paths:
+  /accounts:
+    get:
+      summary: List accounts
+      responses:
+        "200":
+          description: Accounts
+  /accounts/{id}:
+    get:
+      summary: Get account by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Account
+  /customers/{customerId}/accounts:
+    get:
+      summary: List accounts for a customer
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Accounts

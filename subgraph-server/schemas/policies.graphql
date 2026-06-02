@@ -1,0 +1,32 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+type Account @key(fields: "id") {
+  id: ID!
+  policies: [Policy!]!
+}
+
+type Policy @key(fields: "id") {
+  id: ID!
+  policyNumber: String!
+  account: Account!
+  customerId: ID!
+  policyType: String!
+  productName: String!
+  status: String!
+  startDate: String!
+  premiumMonthly: Float!
+  sumAssured: Float!
+  insuredPerson: String!
+  linkedFunds: [Fund!]!
+}
+
+type Fund @key(fields: "id") {
+  id: ID!
+  linkedPolicies: [Policy!]!
+}
+
+type Query {
+  policy(id: ID!): Policy
+  policies(accountId: ID): [Policy!]!
+}

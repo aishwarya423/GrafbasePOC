@@ -1,0 +1,27 @@
+[gateway]
+timeout = "30s"
+subgraph_timeout = "10s"
+
+[graph]
+path = "/graphql"
+introspection = true
+
+[cors]
+allow_credentials = false
+allow_origins = ["http://localhost:8080", "http://127.0.0.1:8080"]
+allow_methods = ["GET", "POST", "OPTIONS"]
+allow_headers = ["Content-Type"]
+expose_headers = ["Access-Control-Allow-Origin"]
+allow_private_network = true
+
+[subgraphs.accounts]
+url = "http://accounts-subgraph:4000/graphql"
+timeout = "10s"
+
+[subgraphs.policies]
+url = "http://policies-subgraph:4000/graphql"
+timeout = "10s"
+
+[subgraphs.funds]
+url = "http://funds-subgraph:4000/graphql"
+timeout = "10s"

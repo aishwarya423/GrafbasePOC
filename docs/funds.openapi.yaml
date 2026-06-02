@@ -1,0 +1,35 @@
+openapi: 3.0.3
+info:
+  title: Funds REST API
+  version: 1.0.0
+paths:
+  /funds:
+    get:
+      summary: List funds
+      responses:
+        "200":
+          description: Funds
+  /funds/{id}:
+    get:
+      summary: Get fund by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Fund
+  /accounts/{accountId}/funds:
+    get:
+      summary: List funds held by an account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Funds

@@ -1,0 +1,90 @@
+services:
+  accounts-rest:
+    build:
+      context: ./mock-rest-api
+    environment:
+      SERVICE_NAME: accounts
+      PORT: 3000
+      EXPECTED_API_KEY: ${ACCOUNTS_API_KEY:-accounts-local-key}
+    ports:
+      - "3001:3000"
+
+  policies-rest:
+    build:
+      context: ./mock-rest-api
+    environment:
+      SERVICE_NAME: policies
+      PORT: 3000
+      EXPECTED_API_KEY: ${POLICIES_API_KEY:-policies-local-key}
+    ports:
+      - "3002:3000"
+
+  funds-rest:
+    build:
+      context: ./mock-rest-api
+    environment:
+      SERVICE_NAME: funds
+      PORT: 3000
+      EXPECTED_API_KEY: ${FUNDS_API_KEY:-funds-local-key}
+    ports:
+      - "3003:3000"
+
+  accounts-subgraph:
+    build:
+      context: ./subgraph-server
+    environment:
+      SERVICE_NAME: accounts
+      PORT: 4000
+      REST_BASE_URL: http://accounts-rest:3000
+      REST_API_KEY: ${ACCOUNTS_API_KEY:-accounts-local-key}
+    depends_on:
+      - accounts-rest
+
+  policies-subgraph:
+    build:
+      context: ./subgraph-server
+    environment:
+      SERVICE_NAME: policies
+      PORT: 4000
+      REST_BASE_URL: http://policies-rest:3000
+      REST_API_KEY: ${POLICIES_API_KEY:-policies-local-key}
+    depends_on:
+      - policies-rest
+
+  funds-subgraph:
+    build:
+      context: ./subgraph-server
+    environment:
+      SERVICE_NAME: funds
+      PORT: 4000
+      REST_BASE_URL: http://funds-rest:3000
+      REST_API_KEY: ${FUNDS_API_KEY:-funds-local-key}
+    depends_on:
+      - funds-rest
+
+  grafbase:
+    image: ghcr.io/grafbase/gateway:latest
+    command:
+      - --config
+      - /etc/grafbase/grafbase.toml
+      - --schema
+      - /etc/grafbase/supergraph.graphql
+      - --listen-address
+      - 0.0.0.0:5000
+    volumes:
+      - ./grafbase/grafbase.toml:/etc/grafbase/grafbase.toml:ro
+      - ./grafbase/supergraph.graphql:/etc/grafbase/supergraph.graphql:ro
+    ports:
+      - "5050:5000"
+    depends_on:
+      - accounts-subgraph
+      - policies-subgraph
+      - funds-subgraph
+
+  graphiql:
+    build:
+      context: ./explorer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - grafbase
