@@ -1,7 +1,18 @@
 const http = require("http");
 
+//To run locally on 3 diffrent ports at a time : comment below 2 lines, serviceName and port
+// const PORTS = {
+//   accounts: Number(process.env.ACCOUNTS_PORT || 3001),
+//   policies: Number(process.env.POLICIES_PORT || 3002),
+//   funds:    Number(process.env.FUNDS_PORT    || 3003),
+// };
+
+
+// In Docker each container runs one service, selected by SERVICE_NAME + PORT.
+// Locally (outside Docker) you can still run all three by setting those vars
+// or just letting them default to their respective ports.
 const serviceName = process.env.SERVICE_NAME || "accounts";
-const port = Number(process.env.PORT || 3000);
+const port = Number(process.env.PORT || 3001);
 const expectedApiKey = process.env.EXPECTED_API_KEY || "";
 
 const accounts = [
@@ -217,35 +228,35 @@ function authorize(req, res) {
   return false;
 }
 
-function router(req, res) {
-  const url = new URL(req.url, `http://${req.headers.host}`);
+function makeRouter(serviceName) {
+  return function router(req, res) {
+    const url = new URL(req.url, `http://${req.headers.host}`);
 
-  if (req.method === "OPTIONS") {
-    res.writeHead(204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Content-Type, X-Api-Key"
-    });
-    res.end();
-    return;
-  }
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Headers": "Content-Type, X-Api-Key"
+      });
+      res.end();
+      return;
+    }
 
-  if (url.pathname === "/health") {
-    sendJson(res, 200, { service: serviceName, ok: true });
-    return;
-  }
+    if (url.pathname === "/health") {
+      sendJson(res, 200, { service: serviceName, ok: true });
+      return;
+    }
 
-  if (url.pathname === "/openapi.json") {
-    sendJson(res, 200, openApiByService[serviceName]);
-    return;
-  }
+    if (url.pathname === "/openapi.json") {
+      sendJson(res, 200, openApiByService[serviceName]);
+      return;
+    }
 
-  if (!authorize(req, res)) return;
+    if (!authorize(req, res)) return;
 
-  if (serviceName === "accounts") return accountsRouter(url, res);
-  if (serviceName === "policies") return policiesRouter(url, res);
-  if (serviceName === "funds") return fundsRouter(url, res);
-
-  sendJson(res, 500, { error: `Unknown SERVICE_NAME ${serviceName}` });
+    if (serviceName === "accounts") return accountsRouter(url, res);
+    if (serviceName === "policies") return policiesRouter(url, res);
+    if (serviceName === "funds") return fundsRouter(url, res);
+  };
 }
 
 function accountsRouter(url, res) {
@@ -295,6 +306,13 @@ function fundsRouter(url, res) {
   return notFound(res);
 }
 
-http.createServer(router).listen(port, () => {
-  console.log(`${serviceName} REST API listening on ${port}`);
+http.createServer(makeRouter(serviceName)).listen(port, () => {
+  console.log(`${serviceName} REST API listening on port ${port}`);
 });
+
+//To run locally on 3 diffrent ports at a time : comment above 3 lines
+// for (const [service, port] of Object.entries(PORTS)) {
+//   http.createServer(makeRouter(service)).listen(port, () => {
+//     console.log(`${service} REST API listening on port ${port}`);
+//   });
+// }

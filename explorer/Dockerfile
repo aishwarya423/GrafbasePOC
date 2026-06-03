@@ -1,10 +1,14 @@
-FROM node:20-alpine
+FROM nginx:alpine
 
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
+# Remove default nginx static assets and config
+RUN rm -rf /usr/share/nginx/html/*
 
-COPY . .
+# Custom nginx config (listen on 8080)
+COPY nginx.conf /etc/nginx/nginx.conf
+
+# Single-page GraphiQL explorer — no build step needed
+COPY index.html /usr/share/nginx/html/index.html
 
 EXPOSE 8080
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0", "--port", "8080"]
+
+CMD ["nginx", "-g", "daemon off;"]
