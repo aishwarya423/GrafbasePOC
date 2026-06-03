@@ -76,7 +76,7 @@ services:
       retries: 5
 
   grafbase:
-    image: ghcr.io/grafbase/gateway:latest-enterprise
+    image: ghcr.io/grafbase/gateway:latest
     environment:
       GRAFBASE_LICENSE_KEY: ${GRAFBASE_LICENSE_KEY}
     command:
