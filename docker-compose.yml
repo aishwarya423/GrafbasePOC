@@ -62,8 +62,23 @@ services:
     depends_on:
       - funds-rest
 
+  valkey:
+    image: valkey/valkey:8-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey-data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
   grafbase:
-    image: ghcr.io/grafbase/gateway:latest
+    image: ghcr.io/grafbase/gateway:latest-enterprise
+    environment:
+      GRAFBASE_LICENSE_KEY: ${GRAFBASE_LICENSE_KEY}
     command:
       - --config
       - /etc/grafbase/grafbase.toml
@@ -77,9 +92,14 @@ services:
     ports:
       - "5050:5000"
     depends_on:
-      - accounts-subgraph
-      - policies-subgraph
-      - funds-subgraph
+      valkey:
+        condition: service_healthy
+      accounts-subgraph:
+        condition: service_started
+      policies-subgraph:
+        condition: service_started
+      funds-subgraph:
+        condition: service_started
 
   graphiql:
     build:
@@ -88,3 +108,6 @@ services:
       - "8080:8080"
     depends_on:
       - grafbase
+
+volumes:
+  valkey-data:

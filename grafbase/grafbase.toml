@@ -14,14 +14,44 @@ allow_headers = ["Content-Type"]
 expose_headers = ["Access-Control-Allow-Origin"]
 allow_private_network = true
 
+# ---------------------------------------------------------------------------
+# Entity caching — backed by Valkey (Redis-compatible) running in Docker.
+# The gateway caches resolved federation entities by their __typename + id.
+# Global TTL is 60 s; individual subgraphs can override with their own TTL.
+# ---------------------------------------------------------------------------
+[entity_caching]
+enabled = true
+ttl = "60s"
+
+[entity_caching.redis]
+url = "redis://valkey:6379"
+
+# ---------------------------------------------------------------------------
+# Subgraph config
+# ---------------------------------------------------------------------------
 [subgraphs.accounts]
 url = "http://accounts-subgraph:4000/graphql"
 timeout = "10s"
+
+# Accounts data changes infrequently — cache for 2 minutes
+[subgraphs.accounts.entity_caching]
+enabled = true
+ttl = "120s"
 
 [subgraphs.policies]
 url = "http://policies-subgraph:4000/graphql"
 timeout = "10s"
 
+# Policies can change (status updates) — shorter TTL
+[subgraphs.policies.entity_caching]
+enabled = true
+ttl = "30s"
+
 [subgraphs.funds]
 url = "http://funds-subgraph:4000/graphql"
 timeout = "10s"
+
+# Fund prices update daily — cache for 5 minutes
+[subgraphs.funds.entity_caching]
+enabled = true
+ttl = "300s"
