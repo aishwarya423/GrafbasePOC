@@ -73,8 +73,6 @@ The `explorer/` directory is a **pure nginx container** — no Node.js, no build
 
 | File | Role |
 |------|------|
-| `explorer/index.html` | Self-contained page that loads React, GraphiQL, and its CSS directly from `unpkg.com` CDN at runtime |
-| `explorer/nginx.conf` | Custom nginx config; binds port 8080 and serves `/usr/share/nginx/html` |
-| `explorer/Dockerfile` | `nginx:alpine` image — copies `index.html` and `nginx.conf`, no `npm install` |
+| `explorer/Dockerfile` | `nginx:alpine` image — inlines both the nginx config and the GraphiQL HTML via `RUN` commands; no external files, no `npm install` |
 
 The GraphQL endpoint URL (`http://localhost:5050/graphql`) is hardcoded in `index.html`. To change it, edit the `GRAPHQL_URL` constant near the bottom of that file.
