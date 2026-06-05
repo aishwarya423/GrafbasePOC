@@ -1,0 +1,24 @@
+name: Build and Publish image to Docker Hub
+
+on:
+  workflow_dispatch:
+
+jobs:
+  publish-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        run: echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build image
+        run: docker build -t dockerhubUsername/imagename:tag .
+
+      - name: Push image
+        run: docker push dockerhubUsername/imagename:tag
