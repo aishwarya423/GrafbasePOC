@@ -1,0 +1,15 @@
+meta {
+  name: List Funds
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{funds_url}}/funds
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{funds_api_key}}
+}

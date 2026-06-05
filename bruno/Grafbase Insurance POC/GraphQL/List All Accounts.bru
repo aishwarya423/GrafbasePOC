@@ -1,0 +1,28 @@
+meta {
+  name: List All Accounts
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{graphql_url}}
+  body: graphql
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:graphql {
+  query ListAccounts {
+    accounts {
+      id
+      holderName
+      accountType
+      status
+      totalValue
+      riskProfile
+    }
+  }
+}

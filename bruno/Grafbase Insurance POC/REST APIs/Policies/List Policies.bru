@@ -1,0 +1,15 @@
+meta {
+  name: List Policies
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{policies_url}}/policies
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{policies_api_key}}
+}

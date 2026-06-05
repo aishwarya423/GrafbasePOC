@@ -1,0 +1,15 @@
+meta {
+  name: Get Fund by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{funds_url}}/funds/fund-global-equity
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{funds_api_key}}
+}

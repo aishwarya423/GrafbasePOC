@@ -1,0 +1,15 @@
+meta {
+  name: List Funds by Account
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{funds_url}}/accounts/acct-1001/funds
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{funds_api_key}}
+}

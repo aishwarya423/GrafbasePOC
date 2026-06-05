@@ -1,0 +1,45 @@
+meta {
+  name: Insurance Portfolio Query
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{graphql_url}}
+  body: graphql
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:graphql {
+  query InsurancePortfolio {
+    account(id: "acct-1001") {
+      id
+      holderName
+      accountType
+      totalValue
+      policies {
+        policyNumber
+        productName
+        status
+        linkedFunds {
+          name
+          assetClass
+          oneYearReturnPercent
+        }
+      }
+      fundHoldings {
+        allocationPercent
+        currentValue
+        fund {
+          name
+          riskRating
+          sustainabilityLabel
+        }
+      }
+    }
+  }
+}

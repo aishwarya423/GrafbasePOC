@@ -1,0 +1,15 @@
+meta {
+  name: List Policies by Fund
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{policies_url}}/funds/fund-global-equity/policies
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{policies_api_key}}
+}

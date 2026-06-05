@@ -1,0 +1,15 @@
+meta {
+  name: Get Policy by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{policies_url}}/policies/pol-life-3001
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{policies_api_key}}
+}

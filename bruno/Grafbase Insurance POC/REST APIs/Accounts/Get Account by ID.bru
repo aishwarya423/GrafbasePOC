@@ -1,0 +1,15 @@
+meta {
+  name: Get Account by ID
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{accounts_url}}/accounts/acct-1001
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{accounts_api_key}}
+}

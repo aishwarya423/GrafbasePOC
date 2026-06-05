@@ -1,0 +1,15 @@
+meta {
+  name: List Accounts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{accounts_url}}/accounts
+  body: none
+  auth: none
+}
+
+headers {
+  X-Api-Key: {{accounts_api_key}}
+}

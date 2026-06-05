@@ -1,0 +1,45 @@
+meta {
+  name: Get Account By ID
+  type: graphql
+  seq: 6
+}
+
+post {
+  url: {{graphql_url}}
+  body: graphql
+  auth: inherit
+}
+
+headers {
+  ~Content-Type: application/json
+}
+
+body:graphql {
+  query PoliciesByAccount($accountId: ID!) {
+    policies(accountId: $accountId) {
+      id
+      policyNumber
+      policyType
+      productName
+      status
+      premiumMonthly
+      sumAssured
+      linkedFunds {
+        id
+        name
+        assetClass
+      }
+    }
+  }
+}
+
+body:graphql:vars {
+  {
+    "accountId": "acct-1001"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

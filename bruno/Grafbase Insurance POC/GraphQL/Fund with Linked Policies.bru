@@ -1,0 +1,32 @@
+meta {
+  name: Fund with Linked Policies
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{graphql_url}}
+  body: graphql
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:graphql {
+  query FundWithPolicies {
+    fund(id: "fund-global-equity") {
+      id
+      name
+      assetClass
+      riskRating
+      oneYearReturnPercent
+      linkedPolicies {
+        policyNumber
+        productName
+        status
+      }
+    }
+  }
+}

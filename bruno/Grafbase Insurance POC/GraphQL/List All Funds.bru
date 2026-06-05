@@ -1,0 +1,30 @@
+meta {
+  name: List All Funds
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{graphql_url}}
+  body: graphql
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:graphql {
+  query ListFunds {
+    funds {
+      id
+      name
+      assetClass
+      riskRating
+      oneYearReturnPercent
+      threeYearReturnPercent
+      sustainabilityLabel
+      ongoingChargePercent
+    }
+  }
+}
