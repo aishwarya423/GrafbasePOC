@@ -1,0 +1,119 @@
+schema
+  @link(url: "https://specs.apollo.dev/link/v1.0")
+  @link(url: "https://specs.apollo.dev/join/v0.3", for: EXECUTION)
+{
+  query: Query
+}
+
+directive @join__enumValue(graph: join__Graph!) repeatable on ENUM_VALUE
+
+directive @join__field(graph: join__Graph, requires: join__FieldSet, provides: join__FieldSet, type: String, external: Boolean, override: String, usedOverridden: Boolean) repeatable on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+
+directive @join__graph(name: String!, url: String!) on ENUM_VALUE
+
+directive @join__implements(graph: join__Graph!, interface: String!) repeatable on OBJECT | INTERFACE
+
+directive @join__type(graph: join__Graph!, key: join__FieldSet, extension: Boolean! = false, resolvable: Boolean! = true, isInterfaceObject: Boolean! = false) repeatable on OBJECT | INTERFACE | UNION | ENUM | INPUT_OBJECT | SCALAR
+
+directive @join__unionMember(graph: join__Graph!, member: String!) repeatable on UNION
+
+directive @link(url: String, as: String, for: link__Purpose, import: [link__Import]) repeatable on SCHEMA
+
+type Account
+  @join__type(graph: ACCOUNTS, key: "id")
+  @join__type(graph: FUNDS, key: "id")
+  @join__type(graph: POLICIES, key: "id")
+{
+  id: ID!
+  customerId: ID! @join__field(graph: ACCOUNTS)
+  holderName: String! @join__field(graph: ACCOUNTS)
+  accountType: String! @join__field(graph: ACCOUNTS)
+  status: String! @join__field(graph: ACCOUNTS)
+  openedDate: String! @join__field(graph: ACCOUNTS)
+  pensionProvider: String @join__field(graph: ACCOUNTS)
+  riskProfile: String! @join__field(graph: ACCOUNTS)
+  totalValue: Float! @join__field(graph: ACCOUNTS)
+  contributionRate: Float! @join__field(graph: ACCOUNTS)
+  fundHoldings: [FundHolding!]! @join__field(graph: ACCOUNTS)
+  availableFunds: [Fund!]! @join__field(graph: FUNDS)
+  policies: [Policy!]! @join__field(graph: POLICIES)
+}
+
+type Fund
+  @join__type(graph: ACCOUNTS, key: "id", resolvable: false)
+  @join__type(graph: FUNDS, key: "id")
+  @join__type(graph: POLICIES, key: "id")
+{
+  id: ID!
+  isin: String! @join__field(graph: FUNDS)
+  name: String! @join__field(graph: FUNDS)
+  assetClass: String! @join__field(graph: FUNDS)
+  currency: String! @join__field(graph: FUNDS)
+  riskRating: Int! @join__field(graph: FUNDS)
+  ongoingChargePercent: Float! @join__field(graph: FUNDS)
+  oneYearReturnPercent: Float! @join__field(graph: FUNDS)
+  threeYearReturnPercent: Float! @join__field(graph: FUNDS)
+  sustainabilityLabel: String! @join__field(graph: FUNDS)
+  linkedPolicies: [Policy!]! @join__field(graph: POLICIES)
+}
+
+type FundHolding
+  @join__type(graph: ACCOUNTS)
+{
+  fund: Fund!
+  allocationPercent: Float!
+  units: Float!
+  currentValue: Float!
+}
+
+scalar join__FieldSet
+
+enum join__Graph {
+  ACCOUNTS @join__graph(name: "accounts", url: "http://accounts-subgraph:4000/graphql")
+  FUNDS @join__graph(name: "funds", url: "http://funds-subgraph:4000/graphql")
+  POLICIES @join__graph(name: "policies", url: "http://policies-subgraph:4000/graphql")
+}
+
+scalar link__Import
+
+enum link__Purpose {
+  """
+  `SECURITY` features provide metadata necessary to securely resolve fields.
+  """
+  SECURITY
+
+  """
+  `EXECUTION` features provide metadata necessary for operation execution.
+  """
+  EXECUTION
+}
+
+type Policy
+  @join__type(graph: POLICIES, key: "id")
+{
+  id: ID!
+  policyNumber: String!
+  account: Account!
+  customerId: ID!
+  policyType: String!
+  productName: String!
+  status: String!
+  startDate: String!
+  premiumMonthly: Float!
+  sumAssured: Float!
+  insuredPerson: String!
+  linkedFunds: [Fund!]!
+}
+
+type Query
+  @join__type(graph: ACCOUNTS)
+  @join__type(graph: FUNDS)
+  @join__type(graph: POLICIES)
+{
+  account(id: ID!): Account @join__field(graph: ACCOUNTS)
+  accounts(customerId: ID): [Account!]! @join__field(graph: ACCOUNTS)
+  fund(id: ID!): Fund @join__field(graph: FUNDS)
+  funds: [Fund!]! @join__field(graph: FUNDS)
+  policy(id: ID!): Policy @join__field(graph: POLICIES)
+  policies(accountId: ID): [Policy!]! @join__field(graph: POLICIES)
+}

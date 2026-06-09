@@ -1,0 +1,4 @@
+node_modules/
+subgraph-server/node_modules/
+npm-debug.log
+.env

@@ -1,0 +1,47 @@
+openapi: 3.0.3
+info:
+  title: Policies REST API
+  version: 1.0.0
+paths:
+  /policies:
+    get:
+      summary: List policies
+      responses:
+        "200":
+          description: Policies
+  /policies/{id}:
+    get:
+      summary: Get policy by id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Policy
+  /accounts/{accountId}/policies:
+    get:
+      summary: List policies for an account
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Policies
+  /funds/{fundId}/policies:
+    get:
+      summary: List policies linked to a fund
+      parameters:
+        - name: fundId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Policies
