@@ -74,35 +74,42 @@ ACCOUNTS_API_KEY=accounts-local-key
 POLICIES_API_KEY=policies-local-key
 FUNDS_API_KEY=funds-local-key
 
-# Subgraph Valkey cache URL (default points to the Docker Compose valkey service)
-CACHE_URL=redis://valkey:6379
-# Per-subgraph TTLs are set directly in docker-compose.yml (120s / 30s / 300s)
+# Required for the Enterprise gateway image (activates persistent Valkey cache).
+# Get the key from https://grafbase.com dashboard.
+GRAFBASE_LICENSE_KEY=your-grafbase-enterprise-license-key
 ```
 
 Each REST service expects its own `X-Api-Key` header. Docker Compose passes matching keys to both the REST containers and their corresponding subgraphs automatically.
 
-## Caching (Valkey)
+## Caching (Gateway-layer, Valkey-backed)
 
-Caching is implemented at **two layers**:
+The Grafbase **Enterprise** gateway caches resolved federation entities in Valkey. Cache entries are keyed by `__typename:id` (e.g. `Account:acct-1001`) and reused across **any** GraphQL query that touches that entity — even through different parent paths. Cache survives gateway container restarts.
 
-| Layer | Where | Backend | Notes |
-|---|---|---|---|
-| **Subgraph layer** | Each Apollo subgraph (Node.js) | **Valkey (persistent)** | REST API responses cached in Valkey via `ioredis`; survives gateway restarts |
-| **Gateway layer** | Grafbase OSS gateway | In-memory only | Entity cache; cleared when gateway container restarts |
+Configured in `grafbase/grafbase.toml`:
 
-### Subgraph-level persistent caching
+```toml
+[entity_caching]
+enabled = true
+ttl = "60s"
 
-Each subgraph checks Valkey before calling its REST API. On a cache hit the REST API is not called at all. TTLs are configured per subgraph in `docker-compose.yml`:
+[entity_caching.redis]
+url = "redis://valkey:6379"
+```
 
-| Subgraph | `CACHE_TTL` | Reason |
+Per-subgraph TTL overrides:
+
+| Subgraph | TTL | Reason |
 |---|---|---|
 | accounts | 120s | Account data changes infrequently |
 | policies | 30s | Policy status can change |
 | funds | 300s | Fund prices update daily |
 
-Cache keys follow the pattern `subgraph:<service>:<route>` (e.g. `subgraph:accounts:/accounts/acct-1001`).
+### Requirements
 
-**Graceful degradation:** if Valkey is unreachable, subgraphs fall back to direct REST calls automatically — no errors surfaced to the user.
+- Enterprise gateway image: `ghcr.io/grafbase/gateway:latest-enterprise` (set in `docker-compose.yml`)
+- Valid `GRAFBASE_LICENSE_KEY` in `.env` (sign up at https://grafbase.com)
+
+Without these, the OSS image silently falls back to in-memory entity caching and Valkey will not receive any keys.
 
 ### Testing the cache
 
