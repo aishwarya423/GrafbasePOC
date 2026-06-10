@@ -74,23 +74,35 @@ ACCOUNTS_API_KEY=accounts-local-key
 POLICIES_API_KEY=policies-local-key
 FUNDS_API_KEY=funds-local-key
 
-# Required only when using the Enterprise gateway image (for Valkey cache)
-GRAFBASE_LICENSE_KEY=your-license-key-here
+# Subgraph Valkey cache URL (default points to the Docker Compose valkey service)
+CACHE_URL=redis://valkey:6379
+# Per-subgraph TTLs are set directly in docker-compose.yml (120s / 30s / 300s)
 ```
 
 Each REST service expects its own `X-Api-Key` header. Docker Compose passes matching keys to both the REST containers and their corresponding subgraphs automatically.
 
 ## Caching (Valkey)
 
-A Valkey container (Redis-compatible) runs alongside the gateway. Entity caching is configured in `grafbase/grafbase.toml` with per-subgraph TTLs:
+Caching is implemented at **two layers**:
 
-| Subgraph | TTL | Reason |
+| Layer | Where | Backend | Notes |
+|---|---|---|---|
+| **Subgraph layer** | Each Apollo subgraph (Node.js) | **Valkey (persistent)** | REST API responses cached in Valkey via `ioredis`; survives gateway restarts |
+| **Gateway layer** | Grafbase OSS gateway | In-memory only | Entity cache; cleared when gateway container restarts |
+
+### Subgraph-level persistent caching
+
+Each subgraph checks Valkey before calling its REST API. On a cache hit the REST API is not called at all. TTLs are configured per subgraph in `docker-compose.yml`:
+
+| Subgraph | `CACHE_TTL` | Reason |
 |---|---|---|
 | accounts | 120s | Account data changes infrequently |
 | policies | 30s | Policy status can change |
 | funds | 300s | Fund prices update daily |
 
-> **Note:** The OSS gateway image (`ghcr.io/grafbase/gateway:latest`) uses **in-memory** entity caching — the Valkey config is wired but the Redis backend requires the Enterprise image. Switch to `ghcr.io/grafbase/gateway:latest-enterprise` and set `GRAFBASE_LICENSE_KEY` in `.env` to activate Valkey.
+Cache keys follow the pattern `subgraph:<service>:<route>` (e.g. `subgraph:accounts:/accounts/acct-1001`).
+
+**Graceful degradation:** if Valkey is unreachable, subgraphs fall back to direct REST calls automatically — no errors surfaced to the user.
 
 ### Testing the cache
 
