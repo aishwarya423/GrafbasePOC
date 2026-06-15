@@ -104,6 +104,73 @@ Cache keys follow the pattern `subgraph:<service>:<route>` (e.g. `subgraph:accou
 
 **Graceful degradation:** if Valkey is unreachable, subgraphs fall back to direct REST calls automatically — no errors surfaced to the user.
 
+### Entity tagging & tag-based invalidation
+
+Every cached entry is auto-tagged based on its REST route. Tags are stored as Valkey SETs (`tag:<name>` → set of cache keys), letting you purge groups of related entries in one call without knowing individual keys.
+
+| Route | Tags written |
+|---|---|
+| `/accounts/acct-1001` | `Account`, `Account:acct-1001` |
+| `/accounts/acct-1001/policies` | `Account:acct-1001`, `Policy` |
+| `/accounts/acct-1001/funds` | `Account:acct-1001`, `Fund` |
+| `/policies/pol-9001` | `Policy`, `Policy:pol-9001` |
+| `/funds/fund-001` | `Fund`, `Fund:fund-001` |
+| `/funds/fund-001/policies` | `Fund:fund-001`, `Policy` |
+| `/customers/cust-1/accounts` | `Customer:cust-1`, `Account` |
+
+Each subgraph exposes a small **cache management HTTP API** (separate from the GraphQL endpoint):
+
+| Subgraph | Management port |
+|---|---|
+| accounts | http://localhost:5001 |
+| policies | http://localhost:5002 |
+| funds    | http://localhost:5003 |
+
+Endpoints:
+
+```bash
+# Health (also shows Valkey connection status)
+curl http://localhost:5001/health
+
+# List cache keys registered under a tag
+curl http://localhost:5001/tags/Account:acct-1001
+
+# Purge all entries tied to one or more tags (instant invalidation)
+curl -X POST http://localhost:5001/purge \
+  -H "Content-Type: application/json" \
+  -d '{"tags":["Account:acct-1001"]}'
+# → { "purgedKeys": 2, "purgedTags": 1, "keys": [...] }
+
+# Purge every cached account (bulk invalidation)
+curl -X POST http://localhost:5001/purge \
+  -H "Content-Type: application/json" \
+  -d '{"tags":["Account"]}'
+```
+
+Each subgraph manages only its own cache. To purge the same entity across multiple subgraphs (e.g., the policies subgraph also caches `Account:acct-1001` via `/accounts/acct-1001/policies`), call `/purge` on each subgraph's management port.
+
+**Demo flow — instant invalidation without waiting for TTL:**
+
+```bash
+# 1. Query (cache MISS, then SET)
+curl -X POST http://localhost:5050/graphql -H "Content-Type: application/json" \
+  -d '{"query":"{ account(id:\"acct-1001\") { holderName } }"}'
+
+# 2. Confirm it's cached
+docker exec grafbasepoc-valkey-1 valkey-cli KEYS "*"
+# subgraph:accounts:/accounts/acct-1001
+# tag:Account
+# tag:Account:acct-1001
+
+# 3. Purge by tag — no TTL wait
+curl -X POST http://localhost:5001/purge -H "Content-Type: application/json" \
+  -d '{"tags":["Account:acct-1001"]}'
+
+# 4. Cache is gone, next query refetches
+docker exec grafbasepoc-valkey-1 valkey-cli KEYS "*"
+# (empty)
+```
+
 ### Testing the cache
 
 ```bash

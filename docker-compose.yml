@@ -35,10 +35,13 @@ services:
     environment:
       SERVICE_NAME: accounts
       PORT: 4000
+      MGMT_PORT: 5000
       REST_BASE_URL: http://accounts-rest:3000
       REST_API_KEY: ${ACCOUNTS_API_KEY:-accounts-local-key}
       CACHE_URL: redis://valkey:6379
       CACHE_TTL: 120   # accounts data changes infrequently — 2 min TTL
+    ports:
+      - "5001:5000"   # cache management API (POST /purge, GET /tags/:tag)
     depends_on:
       accounts-rest:
         condition: service_started
@@ -51,10 +54,13 @@ services:
     environment:
       SERVICE_NAME: policies
       PORT: 4000
+      MGMT_PORT: 5000
       REST_BASE_URL: http://policies-rest:3000
       REST_API_KEY: ${POLICIES_API_KEY:-policies-local-key}
       CACHE_URL: redis://valkey:6379
       CACHE_TTL: 30    # policy status can change — 30 sec TTL
+    ports:
+      - "5002:5000"   # cache management API
     depends_on:
       policies-rest:
         condition: service_started
@@ -67,10 +73,13 @@ services:
     environment:
       SERVICE_NAME: funds
       PORT: 4000
+      MGMT_PORT: 5000
       REST_BASE_URL: http://funds-rest:3000
       REST_API_KEY: ${FUNDS_API_KEY:-funds-local-key}
       CACHE_URL: redis://valkey:6379
       CACHE_TTL: 300   # fund prices update daily — 5 min TTL
+    ports:
+      - "5003:5000"   # cache management API
     depends_on:
       funds-rest:
         condition: service_started
