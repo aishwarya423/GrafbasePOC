@@ -1,0 +1,39 @@
+Story Title: Enable Valkey or Redis Caching for Graphbase Local Federation Runtime
+
+Story Description: As a Platform Engineer, I want to enable Valkey or Redis configuration in local Graphbase runtime, so that we can validate Valkey backend caching behavior for local query federation POC. 
+
+The story proves cache feasibility behavior and configuration pattern at POC level.
+
+In Scope: 
+
+Valkey or Redis container runs via docker-compose with persistence.
+
+ Run configured to use Valkey endpoint through environment config. 
+
+Graphbase cache configuration. 
+
+Cache behavior validation (entity or query). 
+
+TTL or Cache tagging at POC level. 
+
+Documentation updated with cache setup and verification flow. 
+
+Cache persistence across gateway restart verified at retained keyspaces.
+
+Acceptance Criteria: 
+
+Redis or Valkey runs alongside Graphbase via docker-compose. 
+
+Runtime uses Valkey backend caching. 
+
+Repeat queries return cached response. 
+
+Cache TTL or tagging behavior is demonstrated. 
+
+Cache survives runtime restart when applicable. 
+
+Readme updated with cache configuration details.
+
+note
+
+ If backend mock APIs are down, cache validation queries fail because source data cannot be fetched on initial miss. POC accepted for local feasibility of Valkey caching in federation runtime.

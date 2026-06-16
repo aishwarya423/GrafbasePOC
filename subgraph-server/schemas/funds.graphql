@@ -1,0 +1,25 @@
+extend schema
+  @link(url: "https://specs.apollo.dev/federation/v2.6", import: ["@key"])
+
+type Fund @key(fields: "id") {
+  id: ID!
+  isin: String!
+  name: String!
+  assetClass: String!
+  currency: String!
+  riskRating: Int!
+  ongoingChargePercent: Float!
+  oneYearReturnPercent: Float!
+  threeYearReturnPercent: Float!
+  sustainabilityLabel: String!
+}
+
+type Account @key(fields: "id") {
+  id: ID!
+  availableFunds: [Fund!]!
+}
+
+type Query {
+  fund(id: ID!): Fund
+  funds: [Fund!]!
+}

@@ -1,0 +1,63 @@
+[gateway]
+timeout = "30s"
+subgraph_timeout = "10s"
+
+[graph]
+path = "/graphql"
+introspection = true
+
+[cors]
+allow_credentials = false
+allow_origins = ["http://localhost:8080", "http://127.0.0.1:8080"]
+allow_methods = ["GET", "POST", "OPTIONS"]
+allow_headers = ["Content-Type"]
+expose_headers = ["Access-Control-Allow-Origin"]
+allow_private_network = true
+
+# ---------------------------------------------------------------------------
+# Entity caching — in-memory only on the OSS gateway image.
+# Persistent caching is handled at the subgraph layer via ioredis + Valkey
+# (CACHE_URL / CACHE_TTL env vars in docker-compose.yml).
+#
+# To activate Redis backend at the gateway layer, switch to the Enterprise
+# image (ghcr.io/grafbase/gateway:latest-enterprise), set GRAFBASE_LICENSE_KEY,
+# then uncomment [entity_caching.redis] below.
+# ---------------------------------------------------------------------------
+[entity_caching]
+enabled = true
+ttl = "60s"
+
+# [entity_caching.redis]   # requires Enterprise image + GRAFBASE_LICENSE_KEY
+# url = "redis://valkey:6379"
+
+# ---------------------------------------------------------------------------
+# Subgraph config
+# Per-subgraph entity_caching TTLs mirror the CACHE_TTL values in docker-compose.yml
+# so that both cache layers expire at the same time.
+# ---------------------------------------------------------------------------
+[subgraphs.accounts]
+url = "http://accounts-subgraph:4000/graphql"
+timeout = "10s"
+
+# Accounts data changes infrequently — 2 minute TTL
+[subgraphs.accounts.entity_caching]
+enabled = true
+ttl = "120s"
+
+[subgraphs.policies]
+url = "http://policies-subgraph:4000/graphql"
+timeout = "10s"
+
+# Policy status can change — 30 second TTL
+[subgraphs.policies.entity_caching]
+enabled = true
+ttl = "30s"
+
+[subgraphs.funds]
+url = "http://funds-subgraph:4000/graphql"
+timeout = "10s"
+
+# Fund prices update daily — 5 minute TTL
+[subgraphs.funds.entity_caching]
+enabled = true
+ttl = "300s"

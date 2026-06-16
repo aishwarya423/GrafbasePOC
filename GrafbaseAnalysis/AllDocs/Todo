@@ -1,0 +1,11 @@
+Federate accounts,policies and funds these 3 rest endpoints which should run on 3 diffrent endpoints
+integrate graphiQL explorer through docker not throught react code
+
+can we direclty federate rest end points instead of resolvers
+implement valkey mechanism config or docker level not nodejs code level
+
+Update read me
+update user doc
+update confluence
+implement graphql mesh
+implement entity tagging
