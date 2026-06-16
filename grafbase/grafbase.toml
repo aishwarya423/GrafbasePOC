@@ -15,20 +15,17 @@ expose_headers = ["Access-Control-Allow-Origin"]
 allow_private_network = true
 
 # ---------------------------------------------------------------------------
-# Entity caching — in-memory only on the OSS gateway image.
-# Persistent caching is handled at the subgraph layer via ioredis + Valkey
-# (CACHE_URL / CACHE_TTL env vars in docker-compose.yml).
-#
-# To activate Redis backend at the gateway layer, switch to the Enterprise
-# image (ghcr.io/grafbase/gateway:latest-enterprise), set GRAFBASE_LICENSE_KEY,
-# then uncomment [entity_caching.redis] below.
+# Entity caching — configured for gateway-layer persistent cache (Valkey/Redis).
+# This is the EXACT config the Enterprise gateway uses. The OSS gateway image
+# parses it without error but silently falls back to in-memory caching.
+# Proof of fallback is captured in PROOF-gateway-cache.md at the repo root.
 # ---------------------------------------------------------------------------
 [entity_caching]
 enabled = true
 ttl = "60s"
 
-# [entity_caching.redis]   # requires Enterprise image + GRAFBASE_LICENSE_KEY
-# url = "redis://valkey:6379"
+[entity_caching.redis]
+url = "redis://valkey:6379"
 
 # ---------------------------------------------------------------------------
 # Subgraph config
