@@ -22,10 +22,12 @@ allow_private_network = true
 # ---------------------------------------------------------------------------
 [entity_caching]
 enabled = true
+storage = "redis"
 ttl = "60s"
 
 [entity_caching.redis]
-url = "redis://valkey:6379"
+url = "redis://redis:6379"
+key_prefix = "grafbase-cache"
 
 # ---------------------------------------------------------------------------
 # Subgraph config

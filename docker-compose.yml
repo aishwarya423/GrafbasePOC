@@ -37,6 +37,7 @@ services:
       PORT: 4000
       REST_BASE_URL: http://accounts-rest:3000
       REST_API_KEY: ${ACCOUNTS_API_KEY:-accounts-local-key}
+      CACHE_MAX_AGE: 120   # tells the gateway to cache Account entities for 2 min
     depends_on:
       - accounts-rest
 
@@ -48,6 +49,7 @@ services:
       PORT: 4000
       REST_BASE_URL: http://policies-rest:3000
       REST_API_KEY: ${POLICIES_API_KEY:-policies-local-key}
+      CACHE_MAX_AGE: 30
     depends_on:
       - policies-rest
 
@@ -59,18 +61,19 @@ services:
       PORT: 4000
       REST_BASE_URL: http://funds-rest:3000
       REST_API_KEY: ${FUNDS_API_KEY:-funds-local-key}
+      CACHE_MAX_AGE: 300
     depends_on:
       - funds-rest
 
-  valkey:
-    image: valkey/valkey:8-alpine
+  redis:
+    image: redis:7-alpine
     restart: unless-stopped
     ports:
       - "6379:6379"
     volumes:
-      - valkey-data:/data
+      - redis-data:/data
     healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
@@ -92,7 +95,7 @@ services:
     ports:
       - "5050:5000"
     depends_on:
-      valkey:
+      redis:
         condition: service_healthy
       accounts-subgraph:
         condition: service_started
@@ -110,4 +113,4 @@ services:
       - grafbase
 
 volumes:
-  valkey-data:
+  redis-data:

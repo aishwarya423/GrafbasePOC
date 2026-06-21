@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { ApolloServer } = require("@apollo/server");
 const { startStandaloneServer } = require("@apollo/server/standalone");
+const { ApolloServerPluginCacheControl } = require("@apollo/server/plugin/cacheControl");
 const { buildSubgraphSchema } = require("@apollo/subgraph");
 const { parse } = require("graphql");
 
@@ -9,6 +10,7 @@ const serviceName = process.env.SERVICE_NAME || "accounts";
 const port = Number(process.env.PORT || 4000);
 const restBaseUrl = process.env.REST_BASE_URL;
 const restApiKey = process.env.REST_API_KEY || "";
+const cacheMaxAge = Number(process.env.CACHE_MAX_AGE || 60);
 
 if (!restBaseUrl) {
   throw new Error("REST_BASE_URL is required");
@@ -114,8 +116,19 @@ const schema = buildSubgraphSchema({
   resolvers: resolversByService[serviceName]()
 });
 
-const server = new ApolloServer({ schema });
+// Apollo Server defaults to `cache-control: no-store`, which Grafbase's
+// entity cache respects and refuses to cache. Override the default max-age
+// so the gateway writes responses to Valkey/Redis.
+const server = new ApolloServer({
+  schema,
+  plugins: [
+    ApolloServerPluginCacheControl({
+      defaultMaxAge: cacheMaxAge,
+      calculateHttpHeaders: true
+    })
+  ]
+});
 
 startStandaloneServer(server, { listen: { host: "0.0.0.0", port } }).then(({ url }) => {
-  console.log(`${serviceName} subgraph ready at ${url}`);
+  console.log(`${serviceName} subgraph ready at ${url} (cache max-age=${cacheMaxAge}s)`);
 });
