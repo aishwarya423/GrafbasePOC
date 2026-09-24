@@ -147,7 +147,7 @@ curl -X POST http://localhost:5001/purge \
   -d '{"tags":["Account"]}'
 ```
 
-Each subgraph manages only its own cache. To purge the same entity across multiple subgraphs (e.g., the policies subgraph also caches `Account:acct-1001` via `/accounts/acct-1001/policies`), call `/purge` on each subgraph's management port.
+All three subgraphs share one Valkey and the same `tag:<name>` keys, so tags are **not** scoped per subgraph. A purge on any management port deletes every cache key registered under the tag, including keys written by other subgraphs (e.g. purging `Account:acct-1001` on the accounts port also removes `subgraph:policies:/accounts/acct-1001/policies` and `subgraph:funds:/accounts/acct-1001/funds`). One call is enough; calling `/purge` on each subgraph is not required.
 
 **Demo flow — instant invalidation without waiting for TTL:**
 
